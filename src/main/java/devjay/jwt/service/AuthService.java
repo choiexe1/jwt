@@ -4,9 +4,10 @@ import devjay.jwt.domain.Member;
 import devjay.jwt.domain.Role;
 import devjay.jwt.repository.MemberRepository;
 import devjay.jwt.web.JwtUtil;
+import devjay.jwt.web.TokenPayload;
 import devjay.jwt.web.Tokens;
-import devjay.jwt.web.dto.LoginDTO;
-import devjay.jwt.web.dto.RegisterDTO;
+import devjay.jwt.web.dto.request.LoginDTO;
+import devjay.jwt.web.dto.request.RegisterDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -60,5 +61,11 @@ public class AuthService {
         } else {
             throw new IllegalStateException("리프레시 토큰 DB랑 다름");
         }
+    }
+
+    public void logout(TokenPayload payload) {
+        Member member = memberRepository.findById(payload.id());
+        member.setRefreshToken(null);
+        memberRepository.update(member);
     }
 }

@@ -1,4 +1,4 @@
-package devjay.jwt.web.dto;
+package devjay.jwt.web.dto.request;
 
 import devjay.jwt.domain.Member;
 import devjay.jwt.domain.Role;

@@ -1,4 +1,4 @@
-package devjay.jwt.web.dto;
+package devjay.jwt.web.dto.request;
 
 import jakarta.validation.constraints.NotEmpty;
 

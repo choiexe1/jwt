@@ -1,10 +1,10 @@
 package devjay.jwt.web;
 
-import devjay.jwt.domain.Member;
 import devjay.jwt.service.AuthService;
 import devjay.jwt.web.argumentresolver.Payload;
-import devjay.jwt.web.dto.LoginDTO;
-import devjay.jwt.web.dto.RegisterDTO;
+import devjay.jwt.web.dto.request.LoginDTO;
+import devjay.jwt.web.dto.request.RegisterDTO;
+import devjay.jwt.web.dto.response.MemberResponseDTO;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,9 +24,9 @@ public class HomeController {
     private final AuthService authService;
 
     @PostMapping("/register")
-    public ResponseEntity<Member> register(@Validated @RequestBody RegisterDTO dto) {
+    public ResponseEntity<MemberResponseDTO> register(@Validated @RequestBody RegisterDTO dto) {
 
-        return ResponseEntity.ok(authService.register(dto));
+        return ResponseEntity.ok(authService.register(dto).toResponseDTO());
     }
 
     @PostMapping("/login")
@@ -55,5 +55,16 @@ public class HomeController {
         map.put("newRefreshToken", newRefreshToken);
 
         return ResponseEntity.ok(map);
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<String> logout(
+            @Payload TokenPayload payload,
+            @CookieValue("refresh_token") String refreshToken,
+            HttpServletResponse response) {
+        response.setHeader(HttpHeaders.AUTHORIZATION, null);
+        response.setHeader("Set-Cookie", "refresh_token=; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=0");
+
+        return ResponseEntity.ok("logout");
     }
 }
