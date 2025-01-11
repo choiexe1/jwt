@@ -1,10 +1,10 @@
 package devjay.jwt.service;
 
-import devjay.jwt.Tokens;
 import devjay.jwt.domain.Member;
 import devjay.jwt.domain.Role;
 import devjay.jwt.repository.MemberRepository;
 import devjay.jwt.web.JwtUtil;
+import devjay.jwt.web.Tokens;
 import devjay.jwt.web.dto.LoginDTO;
 import devjay.jwt.web.dto.RegisterDTO;
 import lombok.RequiredArgsConstructor;
@@ -43,5 +43,22 @@ public class AuthService {
         memberRepository.save(member);
 
         return member;
+    }
+
+    public String verifyRefreshToken(Long id, String refreshToken) {
+        JwtUtil.verifyRefreshToken(refreshToken);
+
+        Member member = memberRepository.findById(id);
+        String currentRefreshToken = member.getRefreshToken();
+
+        if (currentRefreshToken.equals(refreshToken)) {
+            String newRefreshToken = JwtUtil.refreshToken(member);
+            member.setRefreshToken(newRefreshToken);
+            memberRepository.update(member);
+
+            return newRefreshToken;
+        } else {
+            throw new IllegalStateException("리프레시 토큰 DB랑 다름");
+        }
     }
 }

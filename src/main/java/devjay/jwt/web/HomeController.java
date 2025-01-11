@@ -1,9 +1,8 @@
 package devjay.jwt.web;
 
-import com.auth0.jwt.interfaces.Claim;
-import devjay.jwt.Tokens;
 import devjay.jwt.domain.Member;
 import devjay.jwt.service.AuthService;
+import devjay.jwt.web.argumentresolver.Payload;
 import devjay.jwt.web.dto.LoginDTO;
 import devjay.jwt.web.dto.RegisterDTO;
 import jakarta.servlet.http.HttpServletResponse;
@@ -14,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.Map;
 
 @RestController
@@ -40,15 +40,20 @@ public class HomeController {
     }
 
     @GetMapping("/secure")
-    public ResponseEntity<String> secure(@RequestHeader(HttpHeaders.AUTHORIZATION) String bearerToken) {
-        String accessToken = bearerToken.substring(7);
-        Map<String, Claim> claims = JwtUtil.verifyAccessToken(accessToken);
-        Long id = claims.get("id").asLong();
-        String username = claims.get("username").asString();
-
-        log.info("id = {}", id);
-        log.info("username = {}", username);
-
+    public ResponseEntity<String> secure(@Payload TokenPayload payload) {
         return ResponseEntity.ok("Authenticated");
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<Map<String, String>> refresh(@Payload TokenPayload payload, @CookieValue("refresh_token") String refreshToken) {
+        log.info("refreshToken = {}", refreshToken);
+
+        String newRefreshToken = authService.verifyRefreshToken(payload.id(), refreshToken);
+
+        HashMap<String, String> map = new HashMap<>();
+        map.put("oldRefreshToken", refreshToken);
+        map.put("newRefreshToken", newRefreshToken);
+
+        return ResponseEntity.ok(map);
     }
 }

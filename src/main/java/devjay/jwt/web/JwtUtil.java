@@ -6,7 +6,6 @@ import com.auth0.jwt.interfaces.Claim;
 import devjay.jwt.domain.Member;
 
 import java.time.Instant;
-import java.util.HashMap;
 import java.util.Map;
 
 public class JwtUtil {
@@ -20,7 +19,7 @@ public class JwtUtil {
     public static String accessToken(Member member) {
         return JWT.create()
                 .withIssuer("blog.devjay")
-                .withPayload(createPayload(member))
+                .withPayload(createPayload(member).toMap())
                 .withExpiresAt(Instant.now().plusSeconds(MINUTES_AS_SECOND))
                 .sign(Algorithm.HMAC256(ACCESS_SECRET_KEY));
     }
@@ -28,8 +27,8 @@ public class JwtUtil {
     public static String refreshToken(Member member) {
         return JWT.create()
                 .withIssuer("blog.devjay")
-                .withPayload(createPayload(member))
-                .withExpiresAt(Instant.now().plusSeconds(MINUTES_AS_SECOND))
+                .withPayload(createPayload(member).toMap())
+                .withExpiresAt(Instant.now().plusSeconds(MINUTES_AS_SECOND * 5))
                 .sign(Algorithm.HMAC256(REFRESH_SECRET_KEY));
     }
 
@@ -41,20 +40,14 @@ public class JwtUtil {
                 .getClaims();
     }
 
-    public static Map<String, Claim> verifyRefreshToken(String token) {
-        return JWT.require(Algorithm.HMAC256(REFRESH_SECRET_KEY))
+    public static void verifyRefreshToken(String token) {
+        JWT.require(Algorithm.HMAC256(REFRESH_SECRET_KEY))
                 .withIssuer("blog.devjay")
                 .build()
-                .verify(token)
-                .getClaims();
+                .verify(token);
     }
 
-    private static Map<String, Object> createPayload(Member member) {
-        HashMap<String, Object> map = new HashMap<>();
-
-        map.put("id", member.getId());
-        map.put("username", member.getUsername());
-
-        return map;
+    private static TokenPayload createPayload(Member member) {
+        return new TokenPayload(member.getId(), member.getUsername());
     }
 }
